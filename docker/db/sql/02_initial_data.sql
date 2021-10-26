@@ -1,5 +1,3 @@
-INSERT INTO `tasks` (`title`) VALUES ("sample-task-01");
-INSERT INTO `tasks` (`title`) VALUES ("sample-task-02");
-INSERT INTO `tasks` (`title`) VALUES ("sample-task-03");
-INSERT INTO `tasks` (`title`) VALUES ("sample-task-04");
-INSERT INTO `tasks` (`title`, `is_done`) VALUES ("sample-task-05", true);
+INSERT INTO `tasks` (`title`, `detail`, `priority`) VALUES ("sample-task-01", "サンプルタスク１", "中");
+INSERT INTO `tasks` (`title`, `detail`, `priority`) VALUES ("sample-task-02", "サンプルタスク２", "高");
+INSERT INTO `tasks` (`title`, `detail`, `priority`) VALUES ("sample-task-03", "サンプルタスク３", "低");

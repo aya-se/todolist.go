@@ -1,0 +1,33 @@
+{{ template "header" . }}
+<div class="container">
+<form
+    action="/update-task/{{.ID}}"
+    method="POST"
+>
+    <div class="my-3">
+        <p class="fs-2 my-3 fw-bold text-danger">タスクを編集</p>
+        <label for="title" class="form-label">タスク名</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="タスクの名前を入力しましょう！" value="{{.Title}}">
+        <label for="detail" class="form-label">詳細</label>
+        <textarea class="form-control" id="detail" name="detail" placeholder="タスクの詳しい説明を書きましょう！">{{.Detail}}</textarea>
+        <div class="row">
+        <div class="col">
+        <label for="deadline" class="form-label">期限</label>
+        <input type="datetime-local" class="form-control" id="deadline" name="deadline" value="{{.Deadline}}">
+        </div>
+        <div class="col">
+        <label for="priority" class="form-label">優先度</label>
+        <select class="form-select" aria-label=".form-select example" id="priority" name="priority">
+            <option value="{{.Priority}}" selected>{{.Priority}} (現在の設定)</option>
+            {{ if ne .Priority "緊急"}}<option value="緊急">緊急</option>{{end}}
+            {{ if ne .Priority "高"}}<option value="高">高</option>{{end}}
+            {{ if ne .Priority "中"}}<option value="中">中</option>{{end}}
+            {{ if ne .Priority "低"}}<option value="低">低</option>{{end}}
+        </select>
+        </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">完了</button>
+</form>
+</div>
+{{ template "footer" }}

@@ -1,23 +1,99 @@
 {{ template "header" . }}
-<h1>List of tasks</h1>
+<div class="container">
+    <p class="fs-2 my-3 fw-bold text-danger">タスク一覧</p>
+<div class="row card px-3 py-3 my-3">
+    <h5 class="card-title">条件検索</h5>
+    <form>
+        <div class="row">
+            <div class="col">
+                <select class="form-select form-select mb-3" aria-label=".form-select-lg example">
+                    <option value="1">すべての完了状態</option>
+                    <option value="2">未完了のみ</option>
+                    <option value="3">完了済のみ</option>
+                </select>
+            </div>
+            <div class="col">
+                <select class="form-select form-select mb-3" aria-label=".form-select-lg example">
+                    <option value="1">すべての優先度</option>
+                    <option value="2">高優先度のみ</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="mt-1">
+                <label for="input1" class="form-label">タスク名検索</label>
+                <input type="text" class="form-control" id="input1" placeholder="検索したいタスク名を入力">
+                <button type="submit" class="btn btn-primary mt-3">検索</button>
+            </div>
+        </div>
+        
+    </form>
+</div>
+<div class="row px-3 py-3 my-3">
 {{ if not .Tasks }}
 <p>登録データがありません．</p>
 {{ else }}
-<table>
-    <tr>
-        <th>ID</th>
-        <th>タイトル</th>
-        <th>登録日</th>
-        <th>状態</th>
-    </tr>
+<table class="table">
+    <thead>
+        <tr>
+            <th>状態</th>
+            <th>タイトル</th>
+            <th>優先度</th>
+            <th>期限</th>
+        </tr>
+    </thead>
+    <tbody>
     {{ range $task := .Tasks }}
     <tr>
-        <td><a href="/task/{{ $task.ID }}">{{ $task.ID }}</a></td>
+        <td>{{ if $task.IsDone }}
+            <p class="text-light bg-primary text-center">完了済</p>
+            {{else}}
+            <p class="text-light bg-danger text-center">未完了</p>
+            {{ end }}</td>
         <td>{{ $task.Title }}</td>
-        <td>{{ $task.CreatedAt }}</td>
-        <td>{{ if $task.IsDone }}済{{ end }}</td>
+        <td>{{ if eq $task.Priority "緊急"}}
+            <p class="text-light bg-dark text-center">緊急</p>
+            {{ else if eq $task.Priority "高"}}
+            <p class="text-danger text-center">高</p>
+            {{ else if eq $task.Priority "中"}}
+            <p class="text-success text-center">中</p>
+            {{ else if eq $task.Priority "低"}}
+            <p class="text-primary text-center">低</p>
+            {{ end }}
+        </td>
+        <td>{{ $task.Deadline }}</td>
+        <td>
+            <form action="/edit-task/{{ $task.ID }}" method="POST">
+                <button type="submit" class="btn btn-secondary btn-sm">編集</button>
+            </form>
+        </td>
+        <td>
+        {{ if $task.IsDone }}
+            <form 
+                action="/complete-task/{{ $task.ID }}/0"
+                method="POST"
+            >
+                <button type="submit" class="btn btn-outline-warning btn-sm">再開</button>
+            </form>
+        {{ else }}
+            <form
+                action="/complete-task/{{ $task.ID }}/1"
+                method="POST"
+            >
+            <button type="submit" class="btn btn-primary btn-sm">完了</button>
+            </form>
+        {{ end }}
+        </td>
+        <td>
+            <form action="/delete-task/{{ $task.ID }}" method="POST">
+            <button type="submit" class="btn btn-outline-danger btn-sm">削除</button>
+            </form>
+        </td>
     </tr>
     {{ end }}
+    </tbody>
 </table>
+</div>
 {{ end }}
+</div>
 {{ template "footer" }}

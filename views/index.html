@@ -1,6 +1,29 @@
 {{ template "header" . }}
-<h1>TODO List</h1>
-<ul>
-    <li><a href="/list">登録済みタスク一覧</a></li>
-</ul>
+<div class="container">
+<form action="/insert-task" method="POST">
+    <div class="my-3">
+        <p class="fs-2 my-3 fw-bold text-danger">新しいタスクを追加</p>
+        <label for="title" class="form-label">タスク名</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="タスクの名前を入力しましょう！">
+        <label for="detail" class="form-label">詳細</label>
+        <textarea class="form-control" id="detail" name="detail" placeholder="タスクの詳しい説明を書きましょう！"></textarea>
+        <div class="row">
+        <div class="col">
+        <label for="deadline" class="form-label">期限</label>
+        <input type="datetime-local" class="form-control" id="deadline" name="deadline" value="{{ .Now }}">
+        </div>
+        <div class="col">
+        <label for="priority" class="form-label">優先度</label>
+        <select class="form-select" aria-label=".form-select example" id="priority" name="priority">
+            <option value="緊急">緊急</option>
+            <option value="高">高</option>
+            <option value="中" selected>中</option>
+            <option value="低">低</option>
+        </select>
+        </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">登録する！</button>
+</form>
+</div>
 {{ template "footer" }}
