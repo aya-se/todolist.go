@@ -8,7 +8,7 @@ import (
 // Task corresponds to a row in `tasks` table
 type Task struct {
 	ID        uint64    `db:"id"`
-	UserID		uint64		`db:"user_id"`
+	UserID		string		`db:"user_id"`
 	Title     string    `db:"title"`
 	Detail    string    `db:"detail"`
 	Priority  string    `db:"priority"`
@@ -23,4 +23,20 @@ type TaskForm struct {
 	Detail    string    `form:"detail"`
 	Priority  string    `form:"priority"`
 	Deadline	string    `form:"deadline"`
+}
+
+// ユーザー
+type User struct {
+	UserID    string    `db:"user_id"`
+	UserName  string    `db:"user_name"`
+	Password  string    `db:"password"`
+	CreatedAt time.Time `db:"created_at"`
+	IsDeleted	bool      `db:"is_deleted"`
+}
+
+// ユーザー編集フォーム
+type UserForm struct {
+	UserID    string    `form:"user_id"`
+	UserName  string    `form:"user_name"`
+	Password  string    `form:"password"`
 }

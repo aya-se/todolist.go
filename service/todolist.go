@@ -7,10 +7,30 @@ import (
 	database "todolist.go/db"
 	. "todolist.go/db"
 	"log"
+	"golang.org/x/crypto/bcrypt"
+	"time"
 )
+
+var LoginInfo = User{}
+
+// Home renders index.html
+func Home(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID == "" {
+		ctx.Redirect(303, "/signin")
+		return
+	}
+	t := time.Now().Local().Format("2006-01-02T15:04")
+	ctx.HTML(http.StatusOK, "index.html", gin.H{"Title": "HOME", "Now": t, "User": LoginInfo.UserID})
+}
 
 // TaskList renders list of tasks in DB
 func TaskList(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID == "" {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -20,14 +40,14 @@ func TaskList(ctx *gin.Context) {
 
 	// Get tasks in DB
 	var tasks []database.Task
-	err = db.Select(&tasks, "SELECT * FROM tasks ORDER BY deadline") // Use DB#Select for multiple entries
+	err = db.Select(&tasks, "SELECT * FROM tasks WHERE user_id=? ORDER BY deadline", LoginInfo.UserID) // Use DB#Select for multiple entries
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// Render tasks
-	ctx.HTML(http.StatusOK, "task_list.html", gin.H{"Title": "Task list", "Tasks": tasks})
+	ctx.HTML(http.StatusOK, "task_list.html", gin.H{"Title": "Task list", "Tasks": tasks, "User": LoginInfo.UserID})
 }
 
 // ShowTask renders a task with given ID
@@ -60,6 +80,11 @@ func ShowTask(ctx *gin.Context) {
 
 //　新しいタスクの追加
 func InsertTask(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID == "" {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -70,7 +95,7 @@ func InsertTask(ctx *gin.Context) {
 	// 新しいタスクの追加
 	var data TaskForm
 	ctx.Bind(&data)
-	userid := 20000729
+	userid := LoginInfo.UserID
 	title := data.Title
 	detail := data.Detail
 	priority := data.Priority
@@ -204,5 +229,118 @@ func EditTask(ctx *gin.Context) {
 	// Render task
 	deadline := task.Deadline.Format("2006-01-02T15:04")
 	log.Println("%s",deadline)
-	ctx.HTML(http.StatusOK, "edit_task.html", gin.H{"ID": task.ID, "Title": task.Title, "Detail": task.Detail, "Priority": task.Priority, "Deadline": deadline })
+	ctx.HTML(http.StatusOK, "edit_task.html", gin.H{"ID": task.ID, "Title": task.Title, "Detail": task.Detail, "Priority": task.Priority, "Deadline": deadline, "User": LoginInfo.UserID })
+}
+
+// ユーザー登録ページ
+func Signup(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "signup.html", gin.H{"Title": "SignUp", "User": LoginInfo.UserID})
+}
+
+// ユーザーログインページ
+func Signin(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "signin.html", gin.H{"Title": "SignIn", "User": LoginInfo.UserID})
+}
+
+// ユーザー編集ページ
+func EditUser(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, "edit_user.html", gin.H{"Title": "EditUser", "User": LoginInfo.UserID, "UserName": LoginInfo.UserName})
+}
+
+// ユーザー登録
+func InsertUser(ctx *gin.Context) {
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// 新しいユーザーの追加
+	var data UserForm
+	ctx.Bind(&data)
+	user_id := data.UserID
+	user_name := data.UserName
+	password, err := bcrypt.GenerateFromPassword([]byte(data.Password),12)
+	_, err = db.Query("INSERT INTO users (user_id, user_name, password) VALUES (?, ?, ?)", user_id, user_name, password)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// リダイレクト
+	ctx.Redirect(303, "/signout-user")
+}
+
+// ユーザーログイン
+func SigninUser(ctx *gin.Context) {
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var data UserForm
+	ctx.Bind(&data)
+	user_id := data.UserID
+	password := data.Password
+
+	if err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var user User
+	err = db.Get(&user, "SELECT * FROM users WHERE user_id=?", user_id) // Use DB#Get for one entry
+	if err != nil {
+		ctx.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// パスワード確認
+	hash := []byte(user.Password)
+	err = bcrypt.CompareHashAndPassword(hash, []byte(password))
+	if err != nil {
+		log.Println("パスワードが一致しません！")
+		ctx.Redirect(303, "/signin")
+		return
+	}
+	// リダイレクト
+	LoginInfo = user
+	log.Println("%v",LoginInfo)
+	ctx.Redirect(303, "/list")
+}
+
+// ユーザー更新
+func UpdateUser(ctx *gin.Context) {
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// 新しいユーザーの追加
+	var data UserForm
+	ctx.Bind(&data)
+	user_id := LoginInfo.UserID
+	user_name := data.UserName
+	_, err = db.Query("UPDATE users SET user_name=? WHERE user_id=?", user_name, user_id)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	// リダイレクト
+	LoginInfo.UserName = user_name
+	ctx.Redirect(303, "/list")
+}
+
+// ユーザーログアウト
+func SignoutUser(ctx *gin.Context) {
+	// リダイレクト
+	var emptyUser User
+	LoginInfo = emptyUser
+	log.Println("%v",LoginInfo)
+	ctx.Redirect(303, "/signin")
 }

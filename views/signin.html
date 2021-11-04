@@ -1,0 +1,14 @@
+{{ template "header" . }}
+<div class="container">
+<form action="/signin-user" method="POST">
+    <div class="my-3">
+        <p class="fs-2 my-3 fw-bold text-danger">サインイン</p>
+        <label for="user_id" class="form-label">ユーザーID</label>
+        <input type="text" class="form-control" id="user_id" name="user_id" placeholder="IDを入力">
+        <label for="password" class="form-label">パスワード</label>
+        <input type="text" class="form-control" id="password" name="password" placeholder="パスワードを入力">
+    </div>
+    <button type="submit" class="btn btn-primary">サインイン</button>
+</form>
+</div>
+{{ template "footer" }}

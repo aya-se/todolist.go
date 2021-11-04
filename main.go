@@ -35,12 +35,18 @@ func main() {
 	engine.GET("/", service.Home)
 	engine.GET("/list", service.TaskList)
 	engine.GET("/task/:id", service.ShowTask)
+	engine.GET("/signup", service.Signup)
+	engine.GET("/signin", service.Signin)
+	engine.GET("/edit-user", service.EditUser)
 	engine.POST("/edit-task/:id", service.EditTask)
 	engine.POST("/insert-task", service.InsertTask)
 	engine.POST("/update-task/:id", service.UpdateTask)
 	engine.POST("/delete-task/:id", service.DeleteTask)
 	engine.POST("/complete-task/:id/:status", service.CompleteTask)
-
+	engine.POST("/insert-user", service.InsertUser)
+	engine.POST("/signin-user", service.SigninUser)
+	engine.POST("/update-user", service.UpdateUser)
+	engine.GET("/signout-user", service.SignoutUser)
 	// start server
 	engine.Run(fmt.Sprintf(":%d", port))
 }

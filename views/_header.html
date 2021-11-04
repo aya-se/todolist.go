@@ -27,8 +27,24 @@
                         <a class="nav-link active" aria-current="page" href="/">新規追加</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">アカウント</a>
+                        <a class="nav-link" href="/signup">ユーザー登録</a>
                     </li>
+                    {{ if eq .User "" }}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/signin">サインイン</a>
+                    </li>
+                    {{ else }}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            @{{ .User }}
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="/edit-user">アカウント設定</a></li>
+                            <li><a class="dropdown-item" href="/signout-user">サインアウト</a></li>
+                        </ul>
+                    </li>
+                    {{ end }}
                 </ul>
                 
             </div>
