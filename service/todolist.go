@@ -264,6 +264,7 @@ func InsertUser(ctx *gin.Context) {
 	password, err := bcrypt.GenerateFromPassword([]byte(data.Password),12)
 	_, err = db.Query("INSERT INTO users (user_id, user_name, password) VALUES (?, ?, ?)", user_id, user_name, password)
 	if err != nil {
+		log.Println(err);
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -297,7 +298,11 @@ func SigninUser(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-
+	// 退会確認
+	if user.IsDeleted {
+		ctx.String(http.StatusBadRequest, "既に退会したユーザーです！")
+		return
+	}
 	// パスワード確認
 	hash := []byte(user.Password)
 	err = bcrypt.CompareHashAndPassword(hash, []byte(password))
@@ -321,12 +326,13 @@ func UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	// 新しいユーザーの追加
+	// ユーザー情報更新
 	var data UserForm
 	ctx.Bind(&data)
 	user_id := LoginInfo.UserID
 	user_name := data.UserName
-	_, err = db.Query("UPDATE users SET user_name=? WHERE user_id=?", user_name, user_id)
+	password, err := bcrypt.GenerateFromPassword([]byte(data.Password),12)
+	_, err = db.Query("UPDATE users SET user_name=?, password=? WHERE user_id=?", user_name, password, user_id)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
 		return
@@ -338,6 +344,28 @@ func UpdateUser(ctx *gin.Context) {
 
 // ユーザーログアウト
 func SignoutUser(ctx *gin.Context) {
+	// リダイレクト
+	var emptyUser User
+	LoginInfo = emptyUser
+	log.Println("%v",LoginInfo)
+	ctx.Redirect(303, "/signin")
+}
+
+// ユーザー退会
+func DeleteUser(ctx *gin.Context) {
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	// ユーザーの退会処理
+	user_id := LoginInfo.UserID
+	_, err = db.Query("UPDATE users SET is_deleted=1 WHERE user_id=?", user_id)
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, err.Error())
+		return
+	}
 	// リダイレクト
 	var emptyUser User
 	LoginInfo = emptyUser

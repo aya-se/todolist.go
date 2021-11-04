@@ -47,6 +47,7 @@ func main() {
 	engine.POST("/signin-user", service.SigninUser)
 	engine.POST("/update-user", service.UpdateUser)
 	engine.GET("/signout-user", service.SignoutUser)
+	engine.GET("/delete-user", service.DeleteUser)
 	// start server
 	engine.Run(fmt.Sprintf(":%d", port))
 }

@@ -31,15 +31,17 @@
 </div>
 <div class="row px-3 py-3 my-3">
 {{ if not .Tasks }}
-<p>登録データがありません．</p>
+<p>登録データがありません。</p>
 {{ else }}
-<table class="table">
+<table class="table table-hover table-sm">
     <thead>
         <tr>
             <th>状態</th>
             <th>タイトル</th>
             <th>優先度</th>
+            <th>作成日時</th>
             <th>期限</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -61,32 +63,19 @@
             <p class="text-primary text-center">低</p>
             {{ end }}
         </td>
+        <td>{{ $task.CreatedAt }}</td>
         <td>{{ $task.Deadline }}</td>
         <td>
-            <form action="/edit-task/{{ $task.ID }}" method="POST">
-                <button type="submit" class="btn btn-secondary btn-sm">編集</button>
-            </form>
-        </td>
-        <td>
-        {{ if $task.IsDone }}
-            <form 
-                action="/complete-task/{{ $task.ID }}/0"
-                method="POST"
-            >
-                <button type="submit" class="btn btn-outline-warning btn-sm">再開</button>
-            </form>
-        {{ else }}
-            <form
-                action="/complete-task/{{ $task.ID }}/1"
-                method="POST"
-            >
-            <button type="submit" class="btn btn-primary btn-sm">完了</button>
-            </form>
-        {{ end }}
-        </td>
-        <td>
-            <form action="/delete-task/{{ $task.ID }}" method="POST">
-            <button type="submit" class="btn btn-outline-danger btn-sm">削除</button>
+            <form method="POST">
+                <div class="btn-group btn-group-sm">
+                <button type="submit" formaction="/edit-task/{{ $task.ID }}" class="btn btn-secondary">編集</button>
+                    {{ if $task.IsDone }}
+                <button type="submit" formaction="/complete-task/{{ $task.ID }}/0" class="btn btn-outline-warning">再開</button>
+                    {{ else }}
+                <button type="submit" formaction="/complete-task/{{ $task.ID }}/1"  class="btn btn-primary">完了</button>
+                    {{ end }}
+                <button type="submit" formaction="/delete-task/{{ $task.ID }}" class="btn btn-outline-danger">削除</button>
+                </div>
             </form>
         </td>
     </tr>
