@@ -3,27 +3,41 @@
     <p class="fs-2 my-3 fw-bold text-danger">タスク一覧</p>
 <div class="row card px-3 py-3 my-3">
     <h5 class="card-title">条件検索</h5>
-    <form>
+    <form action="/list" method="POST">
         <div class="row">
             <div class="col">
-                <select class="form-select form-select mb-3" aria-label=".form-select-lg example">
-                    <option value="1">すべての完了状態</option>
-                    <option value="2">未完了のみ</option>
-                    <option value="3">完了済のみ</option>
+                <select class="form-select form-select mb-3" aria-label=".form-select-lg example" id="status" name="status" onchange="submit(this.form);">
+                    {{ if ne .Status "all" }} <option value="all">すべての完了状態</option>
+                    {{ else }} <option value="all" selected>すべての完了状態</option> {{ end }}
+                    {{ if ne .Status "incomplete" }} <option value="incomplete">未完了のみ</option>
+                    {{ else }} <option value="incomplete" selected>未完了のみ</option> {{ end }}
+                    {{ if ne .Status "completed" }} <option value="completed">完了済のみ</option>
+                    {{ else }} <option value="completed" selected>完了済のみ</option> {{ end }}
                 </select>
             </div>
             <div class="col">
-                <select class="form-select form-select mb-3" aria-label=".form-select-lg example">
-                    <option value="1">すべての優先度</option>
-                    <option value="2">高優先度のみ</option>
+                <select class="form-select form-select mb-3" aria-label=".form-select-lg example" id="priority" name="priority" value="{{.Priority}}" onchange="submit(this.form);">
+                    {{ if ne .Priority "all" }} <option value="all">すべての優先度</option>
+                    {{ else }} <option value="all" selected>すべての優先度</option> {{ end }}
+                    {{ if ne .Priority "high" }} <option value="high">高優先度のみ</option>
+                    {{ else }} <option value="high" selected>高優先度のみ</option> {{ end }}
+                </select>
+            </div>
+            <div class="col">
+                <select class="form-select form-select mb-3" aria-label=".form-select-lg example" id="order" name="order"
+                    value="{{.Order}}" onchange="submit(this.form);">
+                    {{ if ne .Order "deadline" }} <option value="deadline">期限日時順</option>
+                    {{ else }} <option value="deadline" selected>期限日時順</option> {{ end }}
+                    {{ if ne .Order "created_at" }} <option value="created_at">作成日時順</option>
+                    {{ else }} <option value="created_at" selected>作成日時順</option> {{ end }}
+                    {{ if ne .Order "title" }} <option value="title">タスク名順</option>
+                    {{ else }} <option value="title" selected>タスク名順</option> {{ end }}
                 </select>
             </div>
         </div>
         <div class="row">
             <div class="mt-1">
-                <label for="input1" class="form-label">タスク名検索</label>
-                <input type="text" class="form-control" id="input1" placeholder="検索したいタスク名を入力">
-                <button type="submit" class="btn btn-primary mt-3">検索</button>
+                <input type="text" class="form-control" id="substring" name="substring" placeholder="検索したいタスク名を入力 (Enterキーで反映)" value="{{.Substring}}" onchange="submit(this.form);">
             </div>
         </div>
         
@@ -40,40 +54,33 @@
             <th>タイトル</th>
             <th>優先度</th>
             <th>作成日時</th>
-            <th>期限</th>
+            <th>期限日時</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
     {{ range $task := .Tasks }}
     <tr>
-        <td>{{ if $task.IsDone }}
-            <p class="text-light bg-primary text-center">完了済</p>
-            {{else}}
-            <p class="text-light bg-danger text-center">未完了</p>
+        <td>{{ if $task.IsDone }} <p class="text-light bg-primary text-center">完了済</p>
+            {{ else }} <p class="text-light bg-danger text-center">未完了</p>
             {{ end }}</td>
         <td>{{ $task.Title }}</td>
-        <td>{{ if eq $task.Priority "緊急"}}
-            <p class="text-light bg-dark text-center">緊急</p>
-            {{ else if eq $task.Priority "高"}}
-            <p class="text-danger text-center">高</p>
-            {{ else if eq $task.Priority "中"}}
-            <p class="text-success text-center">中</p>
-            {{ else if eq $task.Priority "低"}}
-            <p class="text-primary text-center">低</p>
-            {{ end }}
-        </td>
+        <td>{{ if eq $task.Priority "緊急" }} <p class="text-light bg-dark text-center">緊急</p>
+            {{ else if eq $task.Priority "高" }} <p class="text-danger text-center">高</p>
+            {{ else if eq $task.Priority "中" }} <p class="text-success text-center">中</p>
+            {{ else if eq $task.Priority "低" }} <p class="text-primary text-center">低</p>
+            {{ end }}</td>
         <td>{{ $task.CreatedAt }}</td>
         <td>{{ $task.Deadline }}</td>
         <td>
             <form method="POST">
                 <div class="btn-group btn-group-sm">
                 <button type="submit" formaction="/edit-task/{{ $task.ID }}" class="btn btn-secondary">編集</button>
-                    {{ if $task.IsDone }}
+                {{ if $task.IsDone }}
                 <button type="submit" formaction="/complete-task/{{ $task.ID }}/0" class="btn btn-outline-warning">再開</button>
-                    {{ else }}
+                {{ else }}
                 <button type="submit" formaction="/complete-task/{{ $task.ID }}/1"  class="btn btn-primary">完了</button>
-                    {{ end }}
+                {{ end }}
                 <button type="submit" formaction="/delete-task/{{ $task.ID }}" class="btn btn-outline-danger">削除</button>
                 </div>
             </form>

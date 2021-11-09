@@ -18,11 +18,11 @@
         <div class="col">
         <label for="priority" class="form-label">優先度</label>
         <select class="form-select" aria-label=".form-select example" id="priority" name="priority">
-            <option value="{{.Priority}}" selected>{{.Priority}} (現在の設定)</option>
-            {{ if ne .Priority "緊急"}}<option value="緊急">緊急</option>{{end}}
-            {{ if ne .Priority "高"}}<option value="高">高</option>{{end}}
-            {{ if ne .Priority "中"}}<option value="中">中</option>{{end}}
-            {{ if ne .Priority "低"}}<option value="低">低</option>{{end}}
+            <option value="{{.Priority}}" selected>{{ .Priority }} (現在の設定)</option>
+            {{ if ne .Priority "緊急" }}<option value="緊急">緊急</option>{{ end }}
+            {{ if ne .Priority "高" }}<option value="高">高</option>{{ end }}
+            {{ if ne .Priority "中" }}<option value="中">中</option>{{ end }}
+            {{ if ne .Priority "低" }}<option value="低">低</option>{{ end }}
         </select>
         </div>
         </div>

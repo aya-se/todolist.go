@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS `tasks`;
 
 CREATE TABLE `tasks` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
-    `user_id` varchar(50) NOT NULL,
+    `user_id` bigint(20) NOT NULL,
     `title` varchar(50) NOT NULL,
     `detail` varchar(200) NOT NULL,
     `priority` varchar(50) NOT NULL,
@@ -14,8 +14,8 @@ CREATE TABLE `tasks` (
 ) DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `users` (
-    `user_id` varchar(50) NOT NULL,
-    `user_name` varchar(50) NOT NULL,
+    `user_id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `user_name` varchar(50) NOT NULL UNIQUE,
     `password` varchar(200) NOT NULL,
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_deleted` boolean NOT NULL DEFAULT b'0',

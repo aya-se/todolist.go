@@ -34,6 +34,7 @@ func main() {
 	engine.Static("/assets", "./assets")
 	engine.GET("/", service.Home)
 	engine.GET("/list", service.TaskList)
+	engine.POST("/list", service.TaskList)
 	engine.GET("/task/:id", service.ShowTask)
 	engine.GET("/signup", service.Signup)
 	engine.GET("/signin", service.Signin)

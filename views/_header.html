@@ -39,10 +39,11 @@
                             aria-expanded="false">
                             @{{ .User }}
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="/edit-user">アカウント設定</a></li>
                             <li><a class="dropdown-item" href="/signout-user">サインアウト</a></li>
-                            <li><a class="dropdown-item" href="/delete-user">退会(アカウント消去)</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/delete-user" data-bs-toggle="tooltip" data-bs-placement="bottom" title="退会すると現在サインイン中のアカウントは永久に利用出来なくなります！">退会(アカウント消去)</a></li>
                         </ul>
                     </li>
                     {{ end }}

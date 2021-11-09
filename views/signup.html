@@ -3,12 +3,12 @@
 <form action="/insert-user" method="POST">
     <div class="my-3">
         <p class="fs-2 my-3 fw-bold text-danger">新規ユーザー登録</p>
-        <label for="user_id" class="form-label">ユーザーID</label>
-        <input type="text" class="form-control" id="user_id" name="user_id" placeholder="ユーザーIDを入力">
         <label for="user_name" class="form-label">ユーザー名</label>
         <input type="text" class="form-control" id="user_name" name="user_name" placeholder="ユーザー名を入力">
         <label for="password" class="form-label">パスワード</label>
-        <input type="text" class="form-control" id="password" name="password" placeholder="パスワードを入力">
+        <input type="password" class="form-control" id="password" name="password" placeholder="パスワードを入力">
+        <label for="confirm" class="form-label">パスワード(確認用)</label>
+        <input type="password" class="form-control" id="confirm" name="confirm" placeholder="同じパスワードをもう1度入力">
     </div>
     <button type="submit" class="btn btn-primary">登録</button>
 </form>

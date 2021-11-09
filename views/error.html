@@ -1,0 +1,9 @@
+{{ template "header" . }}
+<div class="container">
+    <div class="my-3">
+      <p class="fs-2 my-3 fw-bold text-danger">エラー</p>
+      <p>{{ .Error }}</p>
+    </div>
+    <button type="submit" class="btn btn-primary" onclick="history.back()">戻る</button>
+</div>
+{{ template "footer" }}
