@@ -10,7 +10,6 @@ import (
 	"time"
 	"regexp"
 	"strings"
-	"log"
 	"github.com/google/uuid"
 )
 
@@ -105,7 +104,6 @@ func TaskList(ctx *gin.Context) {
 	// Get tasks in DB
 	var tasks []database.Task
 	query := "SELECT id, T.user_id AS 'user_id', title, detail, priority, T.category_id AS 'category_id', category_name, T.created_at AS 'created_at', deadline, is_done FROM tasks AS T LEFT JOIN categories AS C ON T.category_id=C.category_id WHERE T.user_id="+ strconv.FormatUint(LoginInfo[cookie.Value].UserID, 10) + " AND title LIKE '%"+ substring + "%'" + query_status + query_priority + query_category_id + " ORDER BY " + order
-	log.Println(query);
 	err = db.Select(&tasks, query)
 	var categories []database.Category
 	user_id := LoginInfo[cookie.Value].UserID
