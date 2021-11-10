@@ -10,6 +10,7 @@ import (
 	"time"
 	"regexp"
 	"strings"
+	"log"
 )
 
 var LoginInfo = User{}
@@ -21,8 +22,23 @@ func Home(ctx *gin.Context) {
 		ctx.Redirect(303, "/signin")
 		return
 	}
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
 	t := time.Now().Local().Format("2006-01-02T15:04")
-	ctx.HTML(http.StatusOK, "index.html", gin.H{"Title": "HOME", "Now": t, "User": LoginInfo.UserName})
+	var categories []database.Category
+	user_id := LoginInfo.UserID
+	err = db.Select(&categories, "SELECT * FROM categories WHERE user_id=?", user_id)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "index.html", gin.H{"Title": "HOME", "Now": t, "Categories": categories, "User": LoginInfo.UserName})
 }
 
 // TaskList renders list of tasks in DB
@@ -43,7 +59,9 @@ func TaskList(ctx *gin.Context) {
 	ctx.Bind(&searchForm)
 	status := searchForm.Status
 	priority := searchForm.Priority
+	category_id := searchForm.CategoryID
 	order := searchForm.Order
+	// 空の場合(指定なし)
 	if order == "" {
 		order = "deadline"
 	}
@@ -51,6 +69,7 @@ func TaskList(ctx *gin.Context) {
 	substring := searchForm.Substring
 	query_status := ""
 	query_priority := ""
+	query_category_id := ""
 	// 完了状態の絞り込みクエリを追加
 	if status == "incomplete" {
 		query_status = " AND is_done=0"
@@ -59,20 +78,27 @@ func TaskList(ctx *gin.Context) {
 	}
 	// 優先度の絞り込みクエリを追加
 	if priority == "high" {
-		query_priority = " AND (priority='高' OR priority='緊急')"
+		query_priority = " AND priority<=1"
+	}
+	// カテゴリIDの絞り込みクエリの追加
+	if category_id != 0 {
+		query_category_id = " AND T.category_id=" + strconv.FormatUint(category_id, 10)
 	}
 	// Get tasks in DB
 	var tasks []database.Task
-	query := "SELECT * FROM tasks WHERE user_id='"+ strconv.FormatUint(LoginInfo.UserID, 10) + "' AND title LIKE '%"+ substring + "%'" + query_status + query_priority + " ORDER BY " + order
-	
+	query := "SELECT id, T.user_id AS 'user_id', title, detail, priority, T.category_id AS 'category_id', category_name, T.created_at AS 'created_at', deadline, is_done FROM tasks AS T LEFT JOIN categories AS C ON T.category_id=C.category_id WHERE T.user_id="+ strconv.FormatUint(LoginInfo.UserID, 10) + " AND title LIKE '%"+ substring + "%'" + query_status + query_priority + query_category_id + " ORDER BY " + order
+	log.Println(query);
 	err = db.Select(&tasks, query)
+	var categories []database.Category
+	user_id := LoginInfo.UserID
+	err = db.Select(&categories, "SELECT * FROM categories WHERE user_id=?", user_id)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
 		return
 	}
 
 	// Render tasks
-	ctx.HTML(http.StatusOK, "task_list.html", gin.H{"Title": "Task list", "Tasks": tasks, "User": LoginInfo.UserName, "Status": status, "Priority": priority, "Substring": substring, "Order": order})
+	ctx.HTML(http.StatusOK, "task_list.html", gin.H{"Title": "Task list", "Tasks": tasks, "User": LoginInfo.UserName, "Status": status, "Priority": priority, "Substring": substring, "Order": order, "CategoryID": category_id, "Categories": categories})
 }
 
 // ShowTask renders a task with given ID
@@ -124,8 +150,9 @@ func InsertTask(ctx *gin.Context) {
 	title := data.Title
 	detail := data.Detail
 	priority := data.Priority
+	category_id := data.CategoryID
 	deadline := data.Deadline
-	_, err = db.Query("INSERT INTO tasks (user_id, title, detail, priority, deadline) VALUES (?, ?, ?, ?, ?)", user_id, title, detail, priority, deadline)
+	_, err = db.Query("INSERT INTO tasks (user_id, title, detail, priority, category_id, deadline) VALUES (?, ?, ?, ?, ?, ?)", user_id, title, detail, priority, category_id, deadline)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
 		return
@@ -137,6 +164,11 @@ func InsertTask(ctx *gin.Context) {
 
 //　指定タスクの編集
 func UpdateTask(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -155,8 +187,9 @@ func UpdateTask(ctx *gin.Context) {
 	title := data.Title
 	detail := data.Detail
 	priority := data.Priority
+	category_id := data.CategoryID
 	deadline := data.Deadline
-	_, err = db.Query("UPDATE tasks SET title=? , detail=?, priority=?, deadline=? WHERE id=?", title, detail, priority, deadline, id)
+	_, err = db.Query("UPDATE tasks SET title=? , detail=?, priority=?, category_id=?, deadline=? WHERE id=?", title, detail, priority, category_id, deadline, id)
 	if err != nil {
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
 		return
@@ -168,6 +201,11 @@ func UpdateTask(ctx *gin.Context) {
 
 // 指定タスクの削除
 func DeleteTask(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -195,6 +233,11 @@ func DeleteTask(ctx *gin.Context) {
 
 // 指定タスクの完了・再開
 func CompleteTask(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -256,10 +299,18 @@ func EditTask(ctx *gin.Context) {
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
 		return
 	}
-	//data.Deadline = task.Deadline
+	
+	var categories []database.Category
+	user_id := LoginInfo.UserID
+	err = db.Select(&categories, "SELECT * FROM categories WHERE user_id=?", user_id)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
 	// Render task
 	deadline := task.Deadline.Format("2006-01-02T15:04")
-	ctx.HTML(http.StatusOK, "edit_task.html", gin.H{"ID": task.ID, "Title": task.Title, "Detail": task.Detail, "Priority": task.Priority, "Deadline": deadline, "User": LoginInfo.UserName })
+	ctx.HTML(http.StatusOK, "edit_task.html", gin.H{"ID": task.ID, "Title": task.Title, "Detail": task.Detail, "Priority": task.Priority, "CategoryID": task.CategoryID, "Deadline": deadline, "Categories": categories, "User": LoginInfo.UserName })
 }
 
 // ユーザー登録ページ
@@ -369,6 +420,11 @@ func SigninUser(ctx *gin.Context) {
 
 // ユーザー更新
 func UpdateUser(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -418,6 +474,11 @@ func UpdateUser(ctx *gin.Context) {
 
 // ユーザーログアウト
 func SignoutUser(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// リダイレクト
 	var emptyUser User
 	LoginInfo = emptyUser
@@ -426,6 +487,11 @@ func SignoutUser(ctx *gin.Context) {
 
 // ユーザー退会
 func DeleteUser(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
 	// Get DB connection
 	db, err := database.GetConnection()
 	if err != nil {
@@ -443,4 +509,147 @@ func DeleteUser(ctx *gin.Context) {
 	var emptyUser User
 	LoginInfo = emptyUser
 	ctx.Redirect(303, "/signin")
+}
+
+// カテゴリ管理ページ
+func EditCategories(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+	
+	var categories []database.Category
+	user_id := LoginInfo.UserID
+	err = db.Select(&categories, "SELECT * FROM categories WHERE user_id=?", user_id)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	ctx.HTML(http.StatusOK, "edit_categories.html", gin.H{"Title": "Categories", "Categories": categories, "User": LoginInfo.UserName})
+}
+
+//　新しいカテゴリの追加
+func InsertCategory(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	// 新しいカテゴリの追加
+	var data CategoryForm
+	ctx.Bind(&data)
+	user_id := LoginInfo.UserID
+	category_name := data.CategoryName
+	
+	// バリデーション
+	if len(category_name)<1 {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": "カテゴリ名は1文字以上にしてください。"})
+		return
+	}
+	_, err = db.Query("INSERT INTO categories (user_id, category_name) VALUES (?, ?)", user_id, category_name)
+	if err != nil {
+		if strings.Count(err.Error(),"Duplicate")>0 {
+			ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": "このカテゴリ名は既に登録されています！異なるカテゴリ名を指定してください。"})
+			return
+		} else {
+			ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+			return
+		}
+	}
+
+	// リダイレクト
+	ctx.Redirect(303, "/edit-categories")
+}
+
+//　指定カテゴリの編集
+func UpdateCategory(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	category_id, err := strconv.Atoi(ctx.Param("category_id"))
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	// 指定カテゴリの編集
+	var data CategoryForm
+	ctx.Bind(&data)
+	category_name := data.CategoryName
+
+	// バリデーション
+	if len(category_name)<1 {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": "カテゴリ名は1文字以上にしてください。"})
+		return
+	}
+	_, err = db.Query("UPDATE categories SET category_name=? WHERE category_id=?", category_name, category_id)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	// リダイレクト
+	ctx.Redirect(303, "/edit-categories")
+}
+
+// 指定カテゴリの削除
+func DeleteCategory(ctx *gin.Context) {
+	//非ログイン時はリダイレクト
+	if LoginInfo.UserID <= 0 {
+		ctx.Redirect(303, "/signin")
+		return
+	}
+	// Get DB connection
+	db, err := database.GetConnection()
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	user_id := LoginInfo.UserID
+	category_id, err := strconv.Atoi(ctx.Param("category_id"))
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	_, err = db.Query("DELETE FROM categories WHERE category_id=?", category_id)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	// 削除するカテゴリに登録されているタスクをカテゴリ未登録に変更
+	_, err = db.Query("UPDATE tasks SET category_id=1 WHERE user_id=? AND category_id=?", user_id, category_id)
+	if err != nil {
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"Title": "Error", "User": LoginInfo.UserName, "Error": err.Error()})
+		return
+	}
+
+	// リダイレクト
+	ctx.Redirect(303, "/edit-categories")
 }

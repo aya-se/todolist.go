@@ -24,6 +24,22 @@
                 </select>
             </div>
             <div class="col">
+                <select class="form-select" aria-label=".form-select example" id="category_id" name="category_id" value="{{.CategoryID}}" onchange="submit(this.form);">
+                    {{$now := .CategoryID}}
+                    {{ if ne $now 0}} <option value="0">すべてのカテゴリ</option>
+                    {{ else }} <option value="0" selected>すべてのカテゴリ</option> {{ end }}
+                    {{ if ne $now 1}} <option value="1">カテゴリ未登録</option>
+                    {{ else }} <option value="1" selected>カテゴリ未登録</option> {{ end }}
+                    {{ range $category := .Categories }}
+                    {{ if ne $category.CategoryID $now}}
+                    <option value="{{$category.CategoryID}}">{{$category.CategoryName}}</option>
+                    {{ else }}
+                    <option value="{{$category.CategoryID}}" selected>{{$category.CategoryName}}</option>
+                    {{ end }}
+                    {{ end }}
+                </select>
+            </div>
+            <div class="col">
                 <select class="form-select form-select mb-3" aria-label=".form-select-lg example" id="order" name="order"
                     value="{{.Order}}" onchange="submit(this.form);">
                     {{ if ne .Order "deadline" }} <option value="deadline">期限日時順</option>
@@ -32,6 +48,8 @@
                     {{ else }} <option value="created_at" selected>作成日時順</option> {{ end }}
                     {{ if ne .Order "title" }} <option value="title">タスク名順</option>
                     {{ else }} <option value="title" selected>タスク名順</option> {{ end }}
+                    {{ if ne .Order "priority" }} <option value="priority">優先度順</option>
+                    {{ else }} <option value="priority" selected>優先度順</option> {{ end }}
                 </select>
             </div>
         </div>
@@ -53,6 +71,7 @@
             <th>状態</th>
             <th>タイトル</th>
             <th>優先度</th>
+            <th>カテゴリ</th>
             <th>作成日時</th>
             <th>期限日時</th>
             <th></th>
@@ -65,11 +84,12 @@
             {{ else }} <p class="text-light bg-danger text-center">未完了</p>
             {{ end }}</td>
         <td>{{ $task.Title }}</td>
-        <td>{{ if eq $task.Priority "緊急" }} <p class="text-light bg-dark text-center">緊急</p>
-            {{ else if eq $task.Priority "高" }} <p class="text-danger text-center">高</p>
-            {{ else if eq $task.Priority "中" }} <p class="text-success text-center">中</p>
-            {{ else if eq $task.Priority "低" }} <p class="text-primary text-center">低</p>
+        <td>{{ if eq $task.Priority 0 }} <p class="text-light bg-dark text-center">緊急</p>
+            {{ else if eq $task.Priority 1 }} <p class="text-danger text-center">高</p>
+            {{ else if eq $task.Priority 2 }} <p class="text-success text-center">中</p>
+            {{ else if eq $task.Priority 3 }} <p class="text-primary text-center">低</p>
             {{ end }}</td>
+        <td>{{ $task.CategoryName }}</td>
         <td>{{ $task.CreatedAt }}</td>
         <td>{{ $task.Deadline }}</td>
         <td>

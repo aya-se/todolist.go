@@ -6,7 +6,8 @@ CREATE TABLE `tasks` (
     `user_id` bigint(20) NOT NULL,
     `title` varchar(50) NOT NULL,
     `detail` varchar(200) NOT NULL,
-    `priority` varchar(50) NOT NULL,
+    `priority` int NOT NULL,
+    `category_id` bigint(20) NOT NULL DEFAULT 1,
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `deadline` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_done` boolean NOT NULL DEFAULT b'0',
@@ -20,4 +21,12 @@ CREATE TABLE `users` (
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_deleted` boolean NOT NULL DEFAULT b'0',
     PRIMARY KEY (`user_id`)
+) DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `categories` (
+    `category_id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `user_id` bigint(20) NOT NULL,
+    `category_name` varchar(50) NOT NULL UNIQUE,
+    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`category_id`)
 ) DEFAULT CHARSET=utf8mb4;

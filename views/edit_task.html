@@ -12,18 +12,36 @@
         <textarea class="form-control" id="detail" name="detail" placeholder="タスクの詳しい説明を書きましょう！">{{.Detail}}</textarea>
         <div class="row">
         <div class="col">
-        <label for="deadline" class="form-label">期限</label>
-        <input type="datetime-local" class="form-control" id="deadline" name="deadline" value="{{.Deadline}}">
+            <label for="deadline" class="form-label">期限</label>
+            <input type="datetime-local" class="form-control" id="deadline" name="deadline" value="{{.Deadline}}">
         </div>
         <div class="col">
-        <label for="priority" class="form-label">優先度</label>
-        <select class="form-select" aria-label=".form-select example" id="priority" name="priority">
-            <option value="{{.Priority}}" selected>{{ .Priority }} (現在の設定)</option>
-            {{ if ne .Priority "緊急" }}<option value="緊急">緊急</option>{{ end }}
-            {{ if ne .Priority "高" }}<option value="高">高</option>{{ end }}
-            {{ if ne .Priority "中" }}<option value="中">中</option>{{ end }}
-            {{ if ne .Priority "低" }}<option value="低">低</option>{{ end }}
-        </select>
+            <label for="priority" class="form-label">優先度</label>
+            <select class="form-select" aria-label=".form-select example" id="priority" name="priority">
+                {{ if ne .Priority 0 }} <option value="0">緊急</option>
+                {{ else }} <option value="0" selected>緊急</option> {{ end }} 
+                {{ if ne .Priority 1 }} <option value="1">高</option>
+                {{ else }} <option value="1" selected>高</option> {{ end }}
+                {{ if ne .Priority 2 }} <option value="2">中</option>
+                {{ else }} <option value="2" selected>中</option> {{ end }}
+                {{ if ne .Priority 3 }} <option value="3">低</option>
+                {{ else }} <option value="3" selected>低</option> {{ end }}
+            </select>
+        </div>
+        <div class="col">
+            <label for="priority" class="form-label">カテゴリ</label>
+            <select class="form-select" aria-label=".form-select example" id="category_id" name="category_id">
+                {{$now := .CategoryID}}
+                {{ if ne $now 0}} <option value="1">カテゴリ未登録</option>
+                {{ else }} <option value="1" selected>カテゴリ未登録</option> {{ end }}
+                {{ range $category := .Categories }}
+                {{ if ne $category.CategoryID $now}}
+                <option value="{{$category.CategoryID}}">{{$category.CategoryName}}</option>
+                {{ else }}
+                <option value="{{$category.CategoryID}}" selected>{{$category.CategoryName}}</option>
+                {{ end }}
+                {{ end }}
+            </select>
         </div>
         </div>
     </div>

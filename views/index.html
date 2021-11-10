@@ -9,17 +9,26 @@
         <textarea class="form-control" id="detail" name="detail" placeholder="タスクの詳しい説明を書きましょう！"></textarea>
         <div class="row">
         <div class="col">
-        <label for="deadline" class="form-label">期限</label>
-        <input type="datetime-local" class="form-control" id="deadline" name="deadline" value="{{ .Now }}">
+            <label for="deadline" class="form-label">期限</label>
+            <input type="datetime-local" class="form-control" id="deadline" name="deadline" value="{{ .Now }}">
         </div>
         <div class="col">
-        <label for="priority" class="form-label">優先度</label>
-        <select class="form-select" aria-label=".form-select example" id="priority" name="priority">
-            <option value="緊急">緊急</option>
-            <option value="高">高</option>
-            <option value="中" selected>中</option>
-            <option value="低">低</option>
-        </select>
+            <label for="priority" class="form-label">優先度</label>
+            <select class="form-select" aria-label=".form-select example" id="priority" name="priority">
+                <option value="0">緊急</option>
+                <option value="1">高</option>
+                <option value="2" selected>中</option>
+                <option value="3">低</option>
+            </select>
+        </div>
+        <div class="col">
+            <label for="priority" class="form-label">カテゴリ</label>
+            <select class="form-select" aria-label=".form-select example" id="category_id" name="category_id">
+                <option value="1" selected>カテゴリ未登録</option>
+                {{ range $category := .Categories }}
+                <option value="{{$category.CategoryID}}">{{$category.CategoryName}}</option>
+                {{ end }}
+            </select>
         </div>
         </div>
     </div>

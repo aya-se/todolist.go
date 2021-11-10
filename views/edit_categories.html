@@ -1,0 +1,64 @@
+{{ template "header" . }}
+<div class="container">
+  <p class="fs-2 my-3 fw-bold text-danger">カテゴリ管理</p>
+  <div class="row card px-3 py-3 my-3">
+    <h5 class="card-title">新規カテゴリ</h5>
+    <form action="/insert-category" method="POST">
+      <div class="my-3">
+        <label for="category_name" class="form-label">新しいカテゴリ名</label>
+        <input type="text" class="form-control" id="category_name" name="category_name" placeholder="新しいカテゴリ名を入力">
+      </div>
+      <button type="submit" class="btn btn-primary">追加</button>
+    </form>
+  </div>
+  <div class="row px-3 py-3 my-3">
+    {{ if not .Categories }}
+    <p>登録データがありません。</p>
+    {{ else }}
+    <table class="table table-hover table-sm">
+      <thead>
+        <tr>
+          <th>カテゴリ名</th>
+          <th>作成日時</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range $category := .Categories }}
+        <tr>
+          <td>{{ $category.CategoryName }}</td>
+          <td>{{ $category.CreatedAt }}</td>
+          <td>
+            <form method="POST">
+              <div class="btn-group btn-group-sm">
+                <button type="button" data-bs-toggle="modal" data-bs-target="#Modal_{{$category.CategoryID}}" class="btn btn-secondary">編集</button>
+                <button type="submit" formaction="/delete-category/{{ $category.CategoryID }}" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="bottom" title="現在このカテゴリに登録されているタスクは自動的にカテゴリ未登録に変更されます。">削除</button>
+              </div>
+            </form>
+          </td>
+        </tr>
+        <div class="modal fade" id="Modal_{{$category.CategoryID}}" tabindex="-1" aria-labelledby="ModalLabel_{{$category.CategoryID}}" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-body">
+                <h5 class="modal-title" id="ModalLabel_{{$category.CategoryID}}">カテゴリ編集</h5>
+                <form method="POST" action="/update-category/{{ $category.CategoryID }}">
+                  <div class="my-3">
+                    <label for="category_name" class="form-label">新しいカテゴリ名</label>
+                    <input type="text" class="form-control" id="category_name" name="category_name" placeholder="新しいカテゴリ名を入力" value={{$category.CategoryName}}>
+                  </div>
+                  <button type="submit btn-sm" class="btn btn-primary">更新</button>
+                </form>
+                <button type="button btn-sm" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+  </div>
+</div>
+{{ template "footer" }}
