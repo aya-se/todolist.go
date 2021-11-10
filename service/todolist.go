@@ -29,7 +29,7 @@ func Home(ctx *gin.Context) {
 		return
 	}
 
-	t := time.Now().Local().Format("2006-01-02T15:04")
+	t := time.Now().Local().Format("2006-01-02")
 	var categories []database.Category
 	user_id := LoginInfo.UserID
 	err = db.Select(&categories, "SELECT * FROM categories WHERE user_id=?", user_id)
@@ -309,7 +309,7 @@ func EditTask(ctx *gin.Context) {
 	}
 
 	// Render task
-	deadline := task.Deadline.Format("2006-01-02T15:04")
+	deadline := task.Deadline.Format("2006-01-02")
 	ctx.HTML(http.StatusOK, "edit_task.html", gin.H{"ID": task.ID, "Title": task.Title, "Detail": task.Detail, "Priority": task.Priority, "CategoryID": task.CategoryID, "Deadline": deadline, "Categories": categories, "User": LoginInfo.UserName })
 }
 

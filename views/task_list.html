@@ -1,7 +1,7 @@
 {{ template "header" . }}
 <div class="container">
     <p class="fs-2 my-3 fw-bold text-danger">タスク一覧</p>
-<div class="row card px-3 py-3 my-3">
+<div class="row card px-3 py-3">
     <h5 class="card-title">条件検索</h5>
     <form action="/list" method="POST">
         <div class="row">
@@ -42,8 +42,8 @@
             <div class="col">
                 <select class="form-select form-select mb-3" aria-label=".form-select-lg example" id="order" name="order"
                     value="{{.Order}}" onchange="submit(this.form);">
-                    {{ if ne .Order "deadline" }} <option value="deadline">期限日時順</option>
-                    {{ else }} <option value="deadline" selected>期限日時順</option> {{ end }}
+                    {{ if ne .Order "deadline" }} <option value="deadline">期限日順</option>
+                    {{ else }} <option value="deadline" selected>期限日順</option> {{ end }}
                     {{ if ne .Order "created_at" }} <option value="created_at">作成日時順</option>
                     {{ else }} <option value="created_at" selected>作成日時順</option> {{ end }}
                     {{ if ne .Order "title" }} <option value="title">タスク名順</option>
@@ -61,11 +61,11 @@
         
     </form>
 </div>
-<div class="row px-3 py-3 my-3">
+<div class="row py-3">
 {{ if not .Tasks }}
 <p>登録データがありません。</p>
 {{ else }}
-<table class="table table-hover table-sm">
+<table  id="task-list" class="table table-hover table-sm">
     <thead>
         <tr>
             <th>状態</th>
@@ -73,7 +73,7 @@
             <th>優先度</th>
             <th>カテゴリ</th>
             <th>作成日時</th>
-            <th>期限日時</th>
+            <th>締切日</th>
             <th></th>
         </tr>
     </thead>
@@ -90,8 +90,8 @@
             {{ else if eq $task.Priority 3 }} <p class="text-primary text-center">低</p>
             {{ end }}</td>
         <td>{{ $task.CategoryName }}</td>
-        <td>{{ $task.CreatedAt }}</td>
-        <td>{{ $task.Deadline }}</td>
+        <td>{{ printf "%d年%d月%d日%d時%d分" $task.CreatedAt.Year $task.CreatedAt.Month $task.CreatedAt.Day $task.CreatedAt.Hour $task.CreatedAt.Minute }}</td>
+        <td>{{ printf "%d年%d月%d日" $task.Deadline.Year $task.Deadline.Month $task.Deadline.Day }}</td>
         <td>
             <form method="POST">
                 <div class="btn-group btn-group-sm">
@@ -109,7 +109,7 @@
     {{ end }}
     </tbody>
 </table>
-</div>
 {{ end }}
+</div>
 </div>
 {{ template "footer" }}

@@ -12,8 +12,8 @@
         <textarea class="form-control" id="detail" name="detail" placeholder="タスクの詳しい説明を書きましょう！">{{.Detail}}</textarea>
         <div class="row">
         <div class="col">
-            <label for="deadline" class="form-label">期限</label>
-            <input type="datetime-local" class="form-control" id="deadline" name="deadline" value="{{.Deadline}}">
+            <label for="deadline" class="form-label">期限日</label>
+            <input type="date" class="form-control" id="deadline" name="deadline" value="{{.Deadline}}">
         </div>
         <div class="col">
             <label for="priority" class="form-label">優先度</label>
